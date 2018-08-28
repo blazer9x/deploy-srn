@@ -1,0 +1,9 @@
+# Here are variables related to the Tomcat installation
+tomcat:
+  http_port: 8080
+  https_port: 8443
+  admin_username: admin
+  admin_password: adminsecret
+  install_url: "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.33/bin/apache-tomcat-8.0.33.zip"
+  install_location: /opt/tomcat
+  additional_java_opts: "-Xms512m -Xmx1g"

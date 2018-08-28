@@ -1,0 +1,41 @@
+common:
+## python -c 'import crypt; print crypt.crypt("password", "password")';
+  linux_user: indra
+  linux_user_password: 12vjy8B6VZQUU #123123
+  root_password: 12vjy8B6VZQUU #123123
+  app_user: dev
+  app_user_password: 12tir.zIbWQ3c #123456
+  log_file_dir: /opt/tomcat
+  bootstrap: "true"
+
+db:
+  main_dir: "/var/lib/pgsql/9.6"
+  initdb: "true"
+  clear_pgsql_dir: "true"
+  create_database: "true"
+  db_name: "dev"
+
+tomcat:
+  http_port: 8080
+  https_port: 8443
+  install_url: "http://archive.apache.org/dist/tomcat/tomcat-8/v8.5.33/bin/apache-tomcat-8.5.33.zip"
+  install_location: /opt/tomcat
+  additional_java_opts: "-server -Xms512m -Xmx1g -Djava.net.preferIPv4Stack=true"
+  deploy_configs: "false"
+  fresh_install: "true"
+
+  api:
+    install_location: /opt/tomcat-api
+    supervisorctl_name: tomcat-api
+    additional_java_opts: "-server -Xms512m -Xmx1g -Djava.net.preferIPv4Stack=true"
+    port: 8081
+    deploy_URL: http://repo.srinapps.com/ggi-games/games/gift_box_jump_game.zip
+    deployment: "true"
+
+  cms:
+    install_location: /opt/tomcat-cms
+    supervisorctl_name: tomcat-cms
+    additional_java_opts: "-server -Xms512m -Xmx1g -Djava.net.preferIPv4Stack=true"
+    port: 8082
+    deploy_URL: http://repo.srinapps.com/ggi-games/games/gift_box_jump_game.zip
+    deployment: "true"

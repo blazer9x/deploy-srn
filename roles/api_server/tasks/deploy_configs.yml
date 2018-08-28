@@ -1,0 +1,4 @@
+---
+- name: Config or Properties
+  template: src=xxx dest=xxx
+######

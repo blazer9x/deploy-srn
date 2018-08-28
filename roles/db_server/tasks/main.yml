@@ -1,0 +1,102 @@
+---
+- include_role:
+    name: common
+  when: common.bootstrap == "true"
+
+- hostname:
+    name: "{{ ansible_hostname }}"
+
+- name: Install PostgreSQL Server
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+  - python-psycopg2
+  - postgresql96
+  - postgresql96-server
+  - postgresql96-contrib
+
+- name: Stop PostgreSQL Server if running
+  service:
+    name: postgresql-9.6
+    enabled: yes
+    state: stopped
+
+- include: initdb.yml
+  when: db.initdb == "true" and db.clear_pgsql_dir == "true"
+
+- find:
+    paths: "{{ db.main_dir }}"
+    recurse: yes
+    patterns: "postgresql.conf"
+  register: postgresqlconf
+
+- find:
+    paths: "{{ db.main_dir }}"
+    recurse: yes
+    patterns: "pg_hba.conf"
+  register: pghbaconf
+
+- name: Template for pg_hba.conf
+  template:
+    src: pg_hba.conf
+    dest: "{{ pghbaconf.files[0].path }}"
+
+- name: Change Listen Address to all
+  become: true
+  lineinfile:
+    dest: "{{ postgresqlconf.files[0].path }}"
+    regexp: "listen_addresses ="
+    line: "listen_addresses = '*' "
+
+- name: Change Port to Listen
+  become: true
+  lineinfile:
+    dest: "{{ postgresqlconf.files[0].path }}"
+    regexp: "port ="
+    line: "port = 5432 "
+
+- name: Change Max Connections to 1000
+  become: true
+  lineinfile:
+    dest: "{{ postgresqlconf.files[0].path }}"
+    regexp: "max_connections ="
+    line: "max_connections = 1000 "
+
+- name: Hot Standby for Primary DB
+  become: true
+  lineinfile:
+    dest: "{{ postgresqlconf.files[0].path }}"
+    regexp: "wal_level ="
+    line: "wal_level = hot_standby"
+
+- name: Setting Max Wal Sender
+  become: true
+  lineinfile:
+    dest: "{{ postgresqlconf.files[0].path }}"
+    regexp: "max_wal_senders ="
+    line: "max_wal_senders = 100"
+
+- name: Setting Wal Keep Segments
+  become: true
+  lineinfile:
+    dest: "{{ postgresqlconf.files[0].path }}"
+    regexp: "wal_keep_segments ="
+    line: "wal_keep_segments = 100"
+
+- name: Setting Wal Sender Timeout
+  become: true
+  lineinfile:
+    dest: "{{ postgresqlconf.files[0].path }}"
+    regexp: "wal_sender_timeout ="
+    line: "wal_sender_timeout = 0"
+
+- name: Start PostgreSQL Server
+  service:
+    name: postgresql-9.6
+    enabled: yes
+    state: started
+
+### Internal Database Related
+- include: create_database.yml
+  when: db.create_database == "true" and db.clear_pgsql_dir == "true"

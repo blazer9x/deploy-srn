@@ -1,0 +1,27 @@
+---
+# SRIN Repository
+- name: Install Main Ansible Package in Remote Servers
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+  - libselinux-python
+  - epel-release
+
+- name: Insert Install Script for Supervisor
+  template:
+    src: install_supervisor.sh
+    dest: /tmp/install_supervisor.sh
+
+- name: Install Main Supervisor Package
+  yum:
+    name: "{{ item }}"
+    state: installed
+    disable_gpg_check: yes
+  with_items:
+  - python-meld3
+  - python-pip
+  - python-setuptools
+
+- name: Execute Install Supervisor script
+  command: /bin/bash /tmp/install_supervisor.sh

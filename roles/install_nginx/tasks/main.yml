@@ -1,0 +1,43 @@
+---
+# Install Nginx
+- name: Create Nginx directories
+  file: path={{ item }} state=directory owner={{ common.app_user }} group={{ common.app_user }}
+  with_items:
+    - /var/cache/nginx
+    - /var/log/nginx
+    - /opt/nginx/html
+    - /opt/nginx/conf.d
+    - /usr/src/nginx_build
+
+- name: Remove Nginx installation
+  yum: name={{ item }} state=absent
+  with_items:
+  - nginx
+
+- name: Install Main Ansible Package in Remote Servers
+  yum: name={{ item }} state=installed
+  with_items:
+  - gcc
+  - gcc-c++
+  - zlib
+  - zlib-devel
+  - wget
+  - pcre
+  - pcre-devel
+  - openssl
+  - openssl-devel
+
+- name: Download Nginx sourcecode
+  get_url: url=https://github.com/nginx/nginx/archive/branches/stable-1.10.zip dest=/usr/src/nginx_build/nginx.zip
+
+- name: Nginx Script Installer
+  template: src=install-nginx.sh dest=/tmp/install-nginx.sh
+
+- name: Run Install Script for Nginx
+  command: chdir=/tmp /bin/bash install-nginx.sh
+
+- name: Nginx Default Main Config
+  template: src=nginx.conf dest=/opt/nginx/conf/nginx.conf
+
+- name: Nginx Default Main Config - Backup
+  template: src=nginx.conf dest=/opt/nginx/conf/nginx.conf.default

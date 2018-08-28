@@ -1,0 +1,97 @@
+---
+- name: Import Base Variables
+  hosts: all
+  remote_user: root
+  tasks:
+  - name: Include Variables First
+    include_vars:
+      file: group_vars/test.yml
+
+
+- name: Common Playbook
+  hosts: common
+  remote_user: root
+  vars:
+    ansible_hostname: common
+  roles:
+    - common
+  tasks:
+  - name: Override Hosts
+    template:
+      src: templates/hosts.txt
+      dest: /etc/hosts
+
+
+- name: Haproxy Servers Playbook
+  hosts: haproxy
+  remote_user: root
+  vars:
+    ansible_hostname: haproxy
+  roles:
+    - common
+    - haproxy_server
+  tasks:
+  - name: Override Hosts
+    template:
+      src: templates/hosts.txt
+      dest: /etc/hosts
+  - name: Override Haproxy Template Base Config
+    template:
+      src: templates/haproxy.cfg
+      dest: /etc/haproxy/haproxy.cfg
+
+
+- name: DB Servers Playbook
+  hosts: db
+  remote_user: root
+  vars:
+    ansible_hostname: db
+  roles:
+    - common
+    - db_server
+  tasks:
+  - name: Override Hosts
+    template:
+      src: templates/hosts.txt
+      dest: /etc/hosts
+  - name: Override pg_hba.conf
+    template:
+      src: templates/pg_hba.conf
+      dest: "{{ db.main_dir }}/data/pg_hba.conf"
+
+
+- name: API Servers Playbook
+  hosts: api
+  remote_user: root
+  vars:
+    ansible_hostname: api
+  roles:
+    - common
+    - install_nginx
+    - install_tomcat
+    - install_rabbitmq
+    - install_supervisor
+    - api_server
+  tasks:
+  - name: Override Hosts
+    template:
+      src: templates/hosts.txt
+      dest: /etc/hosts
+
+- name: CMS Servers Playbook
+  hosts: cms
+  remote_user: root
+  vars:
+    ansible_hostname: cms
+  roles:
+    - common
+    - install_nginx
+    - install_tomcat
+    - install_rabbitmq
+    - install_supervisor
+    - cms_server
+  tasks:
+  - name: Override Hosts
+    template:
+      src: templates/hosts.txt
+      dest: /etc/hosts

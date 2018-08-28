@@ -1,0 +1,25 @@
+---
+- hostname:
+    name: "{{ ansible_hostname }}"
+
+- name: Install RabbitMQ Package
+  yum: name={{ item }} state=installed
+  with_items:
+  - rabbitmq-server
+
+- name: Import Queue-Reset Scripts
+  template: src=rabbitmq-script.sh dest=/tmp/rabbitmq-script.sh
+
+- name: Import Configurations for Enabled Plugins
+  template: src=enabled_plugins dest=/etc/rabbitmq/enabled_plugins
+
+- name: Execute Install RabbitMQ script (1)
+  command: /bin/bash
+
+- name: Execute Install RabbitMQ script (2)
+  command: /bin/bash /tmp/rabbitmq-script.sh
+
+- service:
+    name: rabbitmq-server
+    enabled: yes
+    state: started

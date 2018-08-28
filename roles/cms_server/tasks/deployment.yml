@@ -1,0 +1,25 @@
+---
+# Application Deployment
+- name: Nginx Config
+  template: src=nginx.txt dest=/opt/nginx/conf.d/{{ tomcat.cms.supervisorctl_name }}.conf owner={{ common.app_user }} group={{ common.app_user }}
+
+- name: Create WAR Identifier
+  shell: echo "{{ tomcat.cms.deploy_URL }}" > {{ tomcat.cms.install_location }}/webapps/identifier.txt
+
+- name: Delete Previous WAR file and directories if exist
+  shell: rm -rf {{ tomcat.cms.install_location }}/webapps/ggi-api*
+
+- name: Download API.WAR
+  get_url: url={{ tomcat.cms.deploy_URL }} dest={{ tomcat.cms.install_location }}/webapps/
+
+- name: Change ownership of Tomcat installation
+  file: path={{ tomcat.cms.install_location }} owner={{ common.app_user }} group={{ common.app_user }} state=directory recurse=yes
+  notify:
+    - supervisorctl reread
+    - supervisorctl update
+
+- name: Starting All in supervisorctl
+  command: echo "Starting Services"
+  notify:
+    - supervisorctl stop all
+    - supervisorctl start all

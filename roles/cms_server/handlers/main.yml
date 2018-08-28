@@ -1,0 +1,16 @@
+---
+- name: supervisorctl reread
+  command: supervisorctl reread
+  listen: "reread"
+- name: supervisorctl update
+  command: supervisorctl update
+  listen: "update"
+- name: supervisorctl stop all
+  command: supervisorctl stop all
+  listen: "stop all"
+- name: supervisorctl start all
+  command: supervisorctl start all
+  listen: "start all"
+- name: stop all nginx instances
+  command: kill -9 `pidof nginx`
+  listen: "killall nginx"

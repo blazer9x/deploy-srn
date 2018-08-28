@@ -1,0 +1,46 @@
+---
+- include_role:
+    name: common
+  when: common.bootstrap == "true"
+
+- hostname:
+    name: "{{ ansible_hostname }}"
+
+- name: Install Haproxy
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - haproxy
+
+- name: Haproxy Template Base Config
+  template:
+    src: haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: Rsyslog for Haproxy
+  template:
+    src: rsyslog-haproxy.conf
+    dest: /etc/rsyslog.d/haproxy.conf
+
+- name: Create Additional files for False-Login Haproxy
+  file:
+    path: "{{ item }}"
+    state: touch
+    owner: "{{ common.app_user }}"
+    group: "{{ common.app_user }}"
+  with_items:
+    - /dev/shm/blank.txt
+
+- service:
+    name: rsyslog
+    enabled: yes
+    state: stopped
+- service:
+    name: rsyslog
+    enabled: yes
+    state: started
+- service:
+    name: haproxy
+    enabled: yes
+    state: stopped

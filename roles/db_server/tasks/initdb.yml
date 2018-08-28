@@ -1,0 +1,22 @@
+---
+- name: Stop PostgreSQL Server if running - initDB tasks
+  service:
+    name: postgresql-9.6
+    enabled: yes
+    state: stopped
+
+- file:
+    path: "{{ db.main_dir }}"
+    state: absent
+  when: db.clear_pgsql_dir == "true"
+
+- file:
+    path: "{{ db.main_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+  when: db.clear_pgsql_dir == "true"
+
+- name: Starting INITDB and Data Directory - initDB
+  command: "/usr/pgsql-9.6/bin/postgresql96-setup initdb"
+  when: db.initdb == "true"

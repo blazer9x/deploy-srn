@@ -1,0 +1,153 @@
+---
+- hostname:
+    name: "{{ ansible_hostname }}"
+
+- name: Hosts File Override
+  template:
+    src: hosts.txt
+    dest: /etc/hosts.txt
+
+- name: Install Main Ansible Package in Remote Servers
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+   - libselinux-python
+   - epel-release
+
+- name: install the 'Base' package group
+  yum:
+    name: "@Base"
+    state: present
+
+- name: install the 'Development tools' package group
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: Install Additional Package
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+   - iptables-services
+   - unzip
+   - dstat
+   - htop
+   - iptraf
+   - vim
+   - telnet
+   - wget
+   - curl
+   - net-tools
+   - screen
+   - tree
+   - lsof
+   - nc
+   - nmap
+   - nload
+   - fuse-sshfs
+
+# Turn off and disable services
+- selinux:
+    state: disabled
+- service:
+    name: iptables
+    enabled: no
+    state: stopped
+- service:
+    name: firewalld
+    enabled: no
+    state: stopped
+- service:
+    name: ip6tables
+    enabled: no
+    state: stopped
+
+# Users and Groups
+## python -c 'import crypt; print crypt.crypt("password", "password")';
+- name: Add Group users
+  group:
+    name: "{{ common.linux_user }}"
+    state: present
+
+- name: Add Linux Users
+  user:
+    name: "{{ common.linux_user }}"
+    groups: "{{ common.linux_user }}"
+    append: yes
+    state: present
+    createhome: yes
+    password: "{{ common.linux_user_password }}"
+
+- name: Change ROOT Password
+  user:
+    name: root
+    append: yes
+    state: present
+    password: "{{ common.root_password }}"
+
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow wheel group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+
+# App User
+- name: Make sure we have a '{{ common.app_user }}' group
+  group:
+    name: "{{ common.app_user }}"
+    state: present
+- name: Add sudoers users '{{ common.app_user }}' to wheel group
+  user:
+    name: "{{ common.app_user }}"
+    groups: wheel
+    append: yes
+    state: present
+    createhome: yes
+    password: "{{ common.app_user_password }}"
+
+# Sysctl Section
+- name: Sysctl Config
+  template:
+    src: sysctl.conf
+    dest: /etc/sysctl.conf
+- name: Reload Sysctl
+  shell: sysctl -p
+
+# Setting maximum number of files
+- pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: nofile
+    value: 1000000
+- pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: nofile
+    value: 1000000
+
+# Install OpenJDK
+- name: Install Java 1.8 Package
+  yum:
+    name: java-1.8.0-openjdk
+    state: present
+
+# Install PostgreSQL Client
+- name: Install Repo for PostgreSQL
+  yum:
+    name: https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-redhat96-9.6-3.noarch.rpm
+    state: installed
+
+- name: Install PostgreSQL Client
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+  - postgresql96

@@ -1,0 +1,45 @@
+---
+- name: Install Java 1.8
+  yum:
+    name: java-1.8.0-openjdk
+    state: present
+
+- name: Install Unzip Package
+  yum:
+    name: "{{ item }}"
+    state: installed
+    disable_gpg_check: yes
+  with_items:
+  - unzip
+
+- name: Download Tomcat
+  get_url: url={{ tomcat.install_url }} dest=/tmp/apache-tomcat.zip
+
+- name: Unarchive a file that is already on the remote machine
+  unarchive:
+    src: /tmp/apache-tomcat.zip
+    dest: /tmp/
+    remote_src: yes
+
+- name: Change ownership of Tomcat installation
+  file: path={{ tomcat.install_location }} owner={{ common.app_user }} group={{ common.app_user }} state=directory recurse=yes
+
+- name: CleanUp Tomcat Base directories
+  shell: rm -rf {{ tomcat.install_location }}
+
+- name: Move Folder Tomcat to Install Location
+  shell: "mv -f /tmp/apache-tomcat-* {{ tomcat.install_location }}"
+  args:
+    creates: "{{ tomcat.install_location }}"
+
+- name: Makes Executables for Catalina.sh
+  file: path={{ tomcat.install_location }}/bin/catalina.sh mode=755
+
+- name: Creates Catalina Server Info directories
+  file: path={{ tomcat.install_location }}/lib/org/apache/catalina/util/ state=directory
+
+# - name: Install Tomcat ServerInfo Properties
+#   copy: src=ServerInfo.properties dest={{ tomcat.install_location }}/lib/org/apache/catalina/util/ServerInfo.properties mode=0755
+
+#- name: Install Tomcat init script
+#  copy: src=tomcat-initscript.sh dest=/etc/init.d/tomcat mode=0755

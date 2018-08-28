@@ -1,0 +1,15 @@
+---
+- postgresql_db:
+    name: "{{ db.db_name }}"
+
+- postgresql_user:
+    db: "{{ db.db_name }}"
+    name: "{{ common.app_user }}"
+    password: "{{ common.app_user_password }}"
+    priv: ALL
+    state: present
+
+# Set Database Owner
+- postgresql_db:
+    name: "{{ db.db_name }}"
+    owner: "{{ common.app_user }}"
