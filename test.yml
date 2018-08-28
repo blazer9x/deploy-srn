@@ -9,7 +9,7 @@
 
 
 - name: Common Playbook
-  hosts: common
+  hosts: all
   remote_user: root
   vars:
     ansible_hostname: common
@@ -28,7 +28,6 @@
   vars:
     ansible_hostname: haproxy
   roles:
-    - common
     - haproxy_server
   tasks:
   - name: Override Hosts
@@ -47,7 +46,6 @@
   vars:
     ansible_hostname: db
   roles:
-    - common
     - db_server
   tasks:
   - name: Override Hosts
@@ -66,7 +64,6 @@
   vars:
     ansible_hostname: api
   roles:
-    - common
     - install_nginx
     - install_tomcat
     - install_rabbitmq
@@ -78,13 +75,13 @@
       src: templates/hosts.txt
       dest: /etc/hosts
 
+
 - name: CMS Servers Playbook
   hosts: cms
   remote_user: root
   vars:
     ansible_hostname: cms
   roles:
-    - common
     - install_nginx
     - install_tomcat
     - install_rabbitmq
